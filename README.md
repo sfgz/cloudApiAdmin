@@ -8,4 +8,4 @@
 </p>
 
 Hint:
-In the zip-file all is included, but in the unzipped version there is no Spot included cause of the size (101 files)
+In the zip-file all is included, but in the unzipped version there is no Spot included unther script/Classes/Contributed/Spout/ cause of the size (101 files)
