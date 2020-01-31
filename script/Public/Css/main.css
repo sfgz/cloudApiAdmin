@@ -1,0 +1,272 @@
+/* CSS for CloudApiAdmin 1.004 */
+BODY {
+ 	font-family:helvetica,arial,sans-serif; hyphens: auto; 
+	padding:0;
+	color:#000;
+} 
+
+BODY.logged_0 {
+    display: table;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+	overflow:hidden;
+} 
+
+BODY.logged_0.css_viewnotes {
+    display: table;
+    position: absolute;
+    height: auto;
+    width: 99%;
+	overflow:scroll;
+} 
+
+BODY.logged_0 #top.welcome {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+BODY.logged_0 .content {
+    margin: auto auto 12% auto;
+    width: 75em;
+}
+
+BODY.logged_1 {
+	margin:0 2% 2% 2%;
+	padding:0;
+	min-width:75em;
+} 
+
+BODY.logged_1 DIV.content {
+	padding:0px 15px 15px 15px;
+	margin-top:0px;
+	border-bottom:1px solid #AAA;
+	border-radius:0 0 5px 5px;
+	background:#fff;
+}
+
+.viewnotes {
+    margin: auto;
+    width: 75em;
+}
+
+DIV.content H1 {margin-top:0px;}
+DIV.content H3 {margin-top:0px;}
+DIV.content DIV.ModelViewHelper-htmlModelTable H3 {margin-top:0px;}
+DIV.content .viewnotes DIV.ModelViewHelper-htmlModelTable TH {font-weight:normal;}
+DIV.content .viewnotes DIV.ModelViewHelper-htmlModelTable TH::after {content:": ";}
+
+H2 {font-size:130%;}
+H3 {font-size:120%;}
+H4 {font-size:110%;font-weight:bold;margin:2px 0 5px 0;}
+H5 {font-size:100%;font-weight:bold;font-style:italic;margin:8px 0 0 0;}
+ol, ul {
+    display: block;
+    -webkit-margin-before: 1em;
+    -webkit-margin-after: 1em;
+    -webkit-margin-start: 0px;
+    -webkit-padding-start: 3em;
+    -webkit-margin-end: 0px;
+	margin: 0.5em 0 1em 0em;
+	padding: 0 0 0 2.5em;
+}
+ul {
+    list-style-type: disc;
+}
+
+#top {padding:0 8px;margin:0;}
+#bottom.logged_1 {margin:0 8px 15px 9px;padding:8px;border-top:2px solid #aaa;border-radius:5px;background:#fff;opacity:0.8;}
+#bottom.logged_0 {display:none;}
+#debug.logged_1 {margin:5px 8px 5px 9px;padding:0 15px;border-radius:4px;background:#fff;opacity:0.8;}
+#debug.logged_0 {display:none;}
+.toolbar.logged_1 {margin:0;padding:0;border:0px;}
+.toolbar.logged_0 {display:none;}
+
+.loginform, .notes {text-align:center;}
+.notes TABLE, .loginform TABLE {text-align:left;margin: auto;border:0px solid black;}
+.loginform TABLE {max-width:50%;min-width:20%;}
+.nohyphens {hyphens: none; } 
+
+TH {text-align:left;} 
+TH.integer, TD.integer {text-align:right;} 
+TD.integer {padding-right:5px;} 
+
+TABLE.filetable TR:hover TD {background:#eee;} 
+TABLE.filetable TD {padding: 4px 5px 1px 5px;} 
+TABLE.filetable TH {padding: 2px 5px;} 
+TABLE.filetable TH {border-bottom:1px solid #999;margin-bottom:5px;} 
+TABLE.filetable  {border-bottom:1px solid #999;margin:5px 0;} 
+
+TABLE.datatable {hyphens: none;} 
+TABLE.datatable TR:hover TD {background:#eee;} 
+TABLE.datatable TH, TABLE.datatable TD, .borderbottom {border-bottom:1px solid black;vertical-align:top;}
+
+TABLE.modeltable {hyphens: none;border:1px solid #888;padding:8px;}
+TABLE.modeltable TH {padding:3px 5px 2px 5px;border:1px solid #555;vertical-align:top;border-width:0px 0px 1px 0px;}
+TABLE.modeltable TD {padding:3px 5px 2px 5px;border:1px solid #555;border-width:0px 0px 1px 1px;vertical-align:top;}
+TABLE.modeltable TR:last-child TD {padding:3px 5px 2px 5px;border:1px solid #555;border-width:0px;vertical-align:top;}
+TABLE.modeltable TH:first-child, TABLE.modeltable TD:first-child {border-left:0;}
+
+TABLE.nopad, TABLE.nopad TD {padding:0 3px 0 0 !important;margin:0 !important;}
+
+input[type="submit"].small, 
+input[type="button"].small {
+	border:1px solid #555;
+	border-right:1px solid #999;
+	border-top:1px solid #aaa;
+	border-radius:3px;
+	padding:2px;
+	font-size:smaller;
+}
+input[type="submit"].small:hover, 
+input[type="button"].small:hover {
+	border:1px solid #555;
+	border-left:1px solid #999;
+	border-bottom:1px solid #aaa;
+}
+
+TABLE.datatable input[type="text"].text_large,
+TABLE.datatable input[type="text"].pass2way {
+	width:30em;
+}
+TABLE.datatable input[type="text"].text_small {
+	width:5em;
+}
+.nowrap {white-space:nowrap;}
+
+a:link {color:#0000a0;}
+a:visited {color:#0000a0;}
+a:hover {color:green;}
+a:active {color:#0000a0;}
+
+a.black {text-decoration:none;}
+a.black:link {color:#000;}
+a.black:visited {color:#000;}
+a.black:hover {color:#D33;}
+a.black:active {color:#000;}
+
+A.small {
+	border:1px solid #555;
+	border-right:1px solid #999;
+	border-top:1px solid #aaa;
+	border-radius:3px;
+	padding:2px 4px;
+	font-size:smaller;
+	background:#eee;
+	text-decoration:none;
+	color:#222;
+}
+A.small:hover {
+	border:1px solid #555;
+	border-left:1px solid #999;
+	border-bottom:1px solid #aaa;
+}
+
+
+.bordered {margin-bottom:5px;padding:3px;border:1px solid #444;}
+.green { color:green; }
+.red { color:red; }
+.blue { color:blue; }
+.bold { font-weight:bold; }
+
+.disabled {opacity:0.9;color:#333;}
+.indented {padding-left:1.5em;}
+
+.ods:before { content:url('../Img/ods.png'); padding:0 2px 0 0;}
+.xlsx:before { content:url('../Img/xlsx.png'); padding:0 2px 0 0;}
+.csv:before { content:url('../Img/csv.png'); padding:0 2px 0 0;}
+
+input[type="submit"].csv, input[type="button"].csv, input[type="submit"].xlsx, input[type="button"].xlsx , input[type="submit"].ods, input[type="button"].ods { padding:2px 2px 2px 20px; background-repeat: no-repeat;background-position: 3% 43%; }
+input[type="submit"].csv, input[type="button"].csv { background-image: url('../Img/csv.png'); }
+input[type="submit"].xlsx, input[type="button"].xlsx { background-image: url('../Img/xlsx.png'); }
+input[type="submit"].ods, input[type="button"].ods { background-image: url('../Img/ods.png'); }
+
+.clickbox {width:15em;position:absolute;x-position:20;z-index:10;background:#fff;border:1px solid black;padding:5px;display:none;}
+
+/* Toggle Switch
+ * source: https://www.w3schools.com/howto/howto_css_switch.asp */
+
+ /* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 17px;
+  margin-top:5px;vertical-align:bottom;
+}
+
+/* Hide default HTML checkbox */
+.switch input[type=checkbox] {position:absolute;top:-3px;opacity:0;width:1px;height:1px;font-size:1%;}
+
+.switch.disabled {opacity:0.5;}
+
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.switch.disabled .slider {cursor: auto;}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 13px;
+  width: 13px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #a0b3cf;
+}
+
+input:focus + .slider {
+  box-shadow: 1px 2px 3px #005;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 7px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+} 
+
+/* FADING div in/out */
+.fadingIn,
+.fadingOut {
+  overflow: hidden;
+  /* This container should not have padding, borders, etc. */
+}
+.fadingOut{border:0;margin:0;padding:0;opacity:0;visibility: hidden;height:0px;transition: height 2.5s ,visibility 0s 1.2s, opacity 1.0s linear;}
+.fadingIn{padding:8px 0 8px 10px;height:auto;opacity:1;visibility: visible;transition: height 2.5s , opacity 1.2s linear;}
+.fadingIn > div,
+.fadingOut > div { 
+  /* Put any padding, border, min-height, etc. here. */
+}
+.fadingOut > div {margin:0;padding:0;height:0px;visibility: hidden
+  margin-top: -10000px;
+  transition: margin-top 0s 1.2s,height 0s 2.5s ,;
+}
+.bordertop{border-top:1px solid #aaa;margin-top:0px;}
+
+.display_0 {display:none;} 
+.hidden {display:none;}

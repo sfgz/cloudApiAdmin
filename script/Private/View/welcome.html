@@ -1,0 +1,51 @@
+<!-- start View welcome.html -->
+<div id="top" class="welcome"><!-- start viewWelcome-top -->
+	<form id="api_admin_form" name="api_admin_form" class="api_admin_form" enctype="multipart/form-data" action="##url##" method="post"><!-- start viewWelcome-api_admin_form -->
+		<div class="content" ><!-- start viewWelcome-content -->
+			<div class="loginform">
+				<table style="">
+						<tr>
+							<td colspan="2" style="text-align:center;"><h1>CloudApiAdmin Login</h1>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="user">##LL:username##</label></th>
+							<td><input id="user" type="text" name="user" value="##user##" /></td>
+						</tr>
+						<tr>
+							<th><label for="pwd">##LL:password##</label></th>
+							<td><input id="pwd" type="password" name="pwd" /></td>
+						</tr>
+						<tr class="display_##is_permalogin_enabled##">
+							<td></td>
+							<td title="##LL:permalogin.title##.">
+								<label style="vertical-align:top;margin-bottom:2px;" class="switch">
+								<input id="permalogin" type="checkbox" value="1" name="permalogin" ##permalogin## />
+								<span class="slider round"></span>
+								</label>
+								<label style="vertical-align:bottom;" for="permalogin">##LL:permalogin.label##</label>
+								
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td><input type="submit" name="login_button" value="##LL:login##" onclick="if(document.getElementById('pwd').value=='')return true;document.getElementById('pwd').value = '##salt##' + MD5(document.getElementById('pwd').value) + '##pepper##' ;" /></td>
+						</tr>
+						<tr>
+							<td colspan="2" style="text-align:center;"><p id="permahint" style="font-style:italic;font-weight:normal;">##COPYLEFT##<br />##logintimeout##</p></td>
+						</tr>
+				</table>
+			</div>
+		</div><!-- end viewWelcome-content -->
+	</form><!-- end viewWelcome-api_admin_form -->
+</div><!-- end viewWelcome-top -->
+
+<div id="bottom" class="logged_0"><!-- start viewWelcome-#bottom -->
+	<div style="width:auto;float:left;"><!-- start viewWelcome-bottom-left -->
+		<a href="#top" target="_self">&uarr; ##LL:top##</a> ##controller##->##action##
+	</div><!-- end viewWelcome-bottom-left -->
+	<div style="width:auto;float:right;"> ##COPYLEFT##</div><!-- copyleft-notice -->
+	<div style="clear:both;"><!-- start viewWelcome-bottom-footer --> ##FOOTER## 
+	</div><!-- end viewWelcome-bottom-footer -->
+</div><!-- end viewWelcome-#bottom -->
+<!-- end View welcome.html -->

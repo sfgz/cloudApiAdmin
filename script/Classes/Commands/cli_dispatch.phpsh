@@ -1,0 +1,75 @@
+#! /usr/bin/env php
+<?php
+
+/************************************************************************************
+ *  
+ *  IMPORTANT: This file has to be executable (0755) at least for cron-daemnon and/or commandline-user (or anyone)
+ *  
+ *  USAGE:
+ *  run without parameter 
+ *    example: "cli_dispatch.phpsh"
+ *    browses all data-directories and runs affored methods, if it's time to
+ *   
+ *  run with 1 parameter 
+ *    - the directory-name as only parameter 
+ *    example: "cli_dispatch.phpsh db1"
+ *    runs affored methods on specified directory, if it's time to
+ *   
+ *  run with 2 parameters
+ *    - the directory-name as first parameter 
+ *    - a command-name [ reset | import | export | documents ] as second parameter 
+ *    example: "cli_dispatch.phpsh db1 reset"
+ *    forces specified method on specified directory. Even if its not time for it
+ *  
+ ************************************************************************************/
+
+
+/***********************************************************************
+ *  
+ *  Copyright notice
+ *
+ *  (c) 2017 Daniel Rueegg <colormixture@verarbeitung.ch>
+ *
+ *  All rights reserved
+ *
+ *  This script is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ **********************************************************************/
+
+
+	error_reporting( E_ALL );
+	ini_set("display_errors", 1);
+
+	$baseDirname = dirname(dirname(dirname(__FILE__)));
+	define( 'SCR_DIR' , $baseDirname . '/' );
+	define( 'DATA_DIR' , dirname($baseDirname) . '/data/' );
+
+	if( !file_exists( SCR_DIR . 'Classes/Core/cli_boot.php') ) die( 'Datei ' . SCR_DIR . 'Classes/Core/cli_boot.php not found!' );
+
+	include( SCR_DIR . 'Classes/Core/cli_boot.php' );
+
+	$boot = new \Drg\CloudApi\cli_boot();
+	if( isset( $argv[2] ) && !empty($argv[2]) ){
+		//  $argv[1] is the data-directory
+		//  $argv[2] is the command to run forced [ reset | import | export | documents ]
+		call_user_func( array( $boot , 'dispatch_rundir' ) , $argv[1] , $argv[2] );
+	}elseif( isset( $argv[1] ) && !empty($argv[1]) ){ 
+		// $argv[1] is the data-directory
+		call_user_func( array( $boot , 'dispatch_rundir' ) , $argv[1] );
+	}else{ // no parameter given, run all dirs
+		call_user_func( array( $boot , 'dispatch_rundir' ) );
+	}
+
+?>
