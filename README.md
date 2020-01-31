@@ -6,3 +6,6 @@
 <br />
   Change the password as first action!
 </p>
+
+Hint:
+In the zip-file all is included, but in the unzipped version there is no Spot included cause of the size (101 files)
