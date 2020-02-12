@@ -188,6 +188,7 @@ Der vordefinierte **Benutzername** lautet 'admin', das Passwort 'admin1'. Bitte 
 		'sort' => '40',
 		'title' => "Release Notes" , 
 		'body' => "+ __Vers. Date       Notes__
++ 3.034 11.02.2020 debug bootup_setting.php and added comment for script-description in notes-model
 + 3.033 05.01.2020 favicon added.
 + 3.032 24.12.2019 Bugfix obdsolete OK Button on lists without checkboxes.
 + 3.031 21.12.2019 Bugfix delete_list was broken.
@@ -312,6 +313,7 @@ Services erweitern keine anderen Klassen, sie k&ouml;nnen als Standalone-Klassen
 + XmlService
 
 ==CONTROLLER (4)==
+Controller beschreiben die Haupt-Teile der Anwendung, sie enthalten Aktionen (Seiten)
 
 + core/controllerBase/ActionsController
 + core/controllerBase/ConfigurationController
@@ -332,6 +334,7 @@ Services erweitern keine anderen Klassen, sie k&ouml;nnen als Standalone-Klassen
 GroupDocsUtility Ben&ouml;tigt FPDF vom Ordner Contributed
 
 ==MODELS (3)==
+Models beschreiben jeweils eine Tabelle mit Tabellenname, Felddefinition und Beispieldaten
 
 + core/modelBase/NotesModel
 + core/modelBase/SqlconnectModel
@@ -469,6 +472,7 @@ Predefined  ** username **  ist 'admin' with password 'admin1'. Please change it
 		'sort' => '40',
 		'title' => "Release Notes" , 
 		'body' => "+ __Vers. Date       Notes__
++ 3.034 11.02.2020 debug bootup_setting.php and added comment for script-description in notes-model
 + 3.033 05.01.2020 favicon added.
 + 3.032 24.12.2019 Bugfix obdsolete OK Button on lists without checkboxes.
 + 3.031 21.12.2019 Bugfix delete_list was broken.
@@ -592,7 +596,7 @@ Services dont extend any class, so they can be used as standalone classes
 + XmlService
 
 ==CONTROLLER (4)==
-
+Controller describing the main parts of the application, they contain actions (Pages)
 + core/controllerBase/ActionsController
 + core/controllerBase/ConfigurationController
 + core/controllerBase/DocumentsController
@@ -612,6 +616,7 @@ Services dont extend any class, so they can be used as standalone classes
 GroupDocsUtility needs class FPDF from folder contributed.
 
 ==MODELS (3)==
+Models describing tables with tablename, fielddefinitions and default-data.
 
 + core/modelBase/NotesModel
 + core/modelBase/SqlconnectModel
