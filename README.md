@@ -9,3 +9,7 @@
 
 <b>Hint</b>: 
 In the zip-file all is included, but in the unzipped version there is no Spot included in script/Classes/Contributed/Spout/ cause of the size (101 files)
+
+https://raw.githubusercontent.com/daten-sfgz/cloudApiAdmin/master/script/Public/Img/favicon.ico
+
+<img src="https://raw.githubusercontent.com/daten-sfgz/cloudApiAdmin/master/script/Public/Img/favicon.ico" />
