@@ -96,23 +96,6 @@ class ActionsController extends \Drg\CloudApi\controllerBase {
 	}
 
     /**
-     * helper setMenueStatus
-     *
-     * @return void
-     */
-    public function setMenueStatus() {
-		if( !file_exists(rtrim($this->settings['dataDir'] . $this->settings['cloudusers'],'/') . '/' . 'userAttributes.csv') ){
-			$this->disabledActions['viewcloud'] = 999;
-			$this->disabledActions['vergleich'] = 999;
-			$this->disabledActions['export'] = 999;
-		}else{
-			if( isset($this->disabledActions['viewcloud']) ) unset( $this->disabledActions['viewcloud']);
-			if( isset($this->disabledActions['vergleich']) ) unset( $this->disabledActions['vergleich']);
- 			if( isset($this->disabledActions['export']) ) unset( $this->disabledActions['export']);
-		}
-	}
-
-    /**
      * action dateienAction
      * file handling
      *
@@ -837,6 +820,23 @@ class ActionsController extends \Drg\CloudApi\controllerBase {
 		// fill debugger
 		if( $this->settings['debug'] >=2  && is_array( $createJobsUtility->debug )  && count( $createJobsUtility->debug ) ){
 			foreach($createJobsUtility->debug  as $errKey => $debug ) $this->debug[$errKey] = $debug;
+		}
+	}
+
+    /**
+     * helper setMenueStatus
+     *
+     * @return void
+     */
+    public function setMenueStatus() {
+		if( !file_exists(rtrim($this->settings['dataDir'] . $this->settings['cloudusers'],'/') . '/' . 'userAttributes.csv') ){
+			$this->disabledActions['viewcloud'] = 999;
+			$this->disabledActions['vergleich'] = 999;
+			$this->disabledActions['export'] = 999;
+		}else{
+			if( isset($this->disabledActions['viewcloud']) ) unset( $this->disabledActions['viewcloud']);
+			if( isset($this->disabledActions['vergleich']) ) unset( $this->disabledActions['vergleich']);
+ 			if( isset($this->disabledActions['export']) ) unset( $this->disabledActions['export']);
 		}
 	}
 

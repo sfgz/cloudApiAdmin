@@ -78,19 +78,6 @@ class DocumentsController extends \Drg\CloudApi\controllerBase {
 	}
 
     /**
-     * helper setMenueStatus
-     *
-     * @return void
-     */
-    public function setMenueStatus() {
-		if( !file_exists(rtrim($this->settings['dataDir'] . $this->settings['cloudusers'],'/') . '/' . 'userAttributes.csv') ){
-				$this->disabledActions['documents'] = 999;
-		}elseif( isset($this->disabledActions['welcome']) ) {
-				unset( $this->disabledActions['documents'] );
-		}
-	}
-
-    /**
      * action documentsAction
      * Used to show cloud-Data 
      * 
@@ -225,12 +212,25 @@ class DocumentsController extends \Drg\CloudApi\controllerBase {
 	}
 
     /**
+     * helper setMenueStatus
+     *
+     * @return void
+     */
+    public function setMenueStatus() {
+		if( !file_exists(rtrim($this->settings['dataDir'] . $this->settings['cloudusers'],'/') . '/' . 'userAttributes.csv') ){
+				$this->disabledActions['documents'] = 999;
+		}elseif( isset($this->disabledActions['welcome']) ) {
+				unset( $this->disabledActions['documents'] );
+		}
+	}
+
+    /**
      * helper uploadOptions
      *
      * @param \Drg\CloudApi\Service\AuthService $authUser
      * @return string
      */
-    public function uploadOptions($authUser) {
+    Private function uploadOptions($authUser) {
 		$category = $this->settings['categories']['connection_folder'];
 		// checkbox for settings delete-unused-pdf-documents
 		$okOptionsCheckboxes = '<p>';
@@ -262,7 +262,7 @@ class DocumentsController extends \Drg\CloudApi\controllerBase {
      *
      * @return string
      */
-    public function filterBox() {
+    Private function filterBox() {
 
 		$tfOptions = array( 'label'=>'##LL:filter_group##: ' , 'id'=>'settings_exec_document_group_filters' , 'placeholder'=>'Filter: A* , 17 , ...' );
 		$textField = $this->view->widgets->objText( 'settings[exec_document_group_filters]' , $this->settings['exec_document_group_filters'] , $tfOptions );

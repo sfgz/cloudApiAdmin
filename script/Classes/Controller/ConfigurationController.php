@@ -283,100 +283,180 @@ class ConfigurationController extends \Drg\CloudApi\controllerBase {
 	}
 
     /**
-     * getSettingsAsObjList
+     * action installAction
      *
-     * @return array
+     * @return void
      */
-    public function getSettingsAsObjList() {
-			$typ = $this->settings['format'];
-			$lab = $this->settings['labels'][$this->settings['language']];
-			$opt = $this->settings['options'];
-			$dep = $this->settings['depends'];
+    public function installAction() {
 
-			$outArr = array();
-			foreach( $this->settings['original'] as $mainfield => $originalContent ){
-				$mainContent = $this->settings[$mainfield];
-				if( !isset($typ[ $mainfield ]) ) continue;
-				if( is_array($mainContent) )  continue;
-				if( isset($this->settings['static'][$mainfield]) )  continue; // $typ[ $mainfield ] = 'label';
-				$outArr[ $mainfield ]['css'] = '';
-				$outArr[ $mainfield ]['rowCss'] = '';
-				$outArr[ $mainfield ]['objDis'] = '';
-				$outArr[ $mainfield ]['depends'] = '';
-				if( isset( $dep[$mainfield] ) ){
-					if( isset($this->settings[ $dep[$mainfield][0] ]) ){
-						// is parent dependent on other parent?
-						$parent = $dep[$mainfield][0];
-						if( isset( $dep[$parent] ) && isset($this->settings[ $dep[$parent][0] ]) ){
-							if( $this->settings[ $dep[$parent][0] ] != $dep[$parent][1] ){
-								if($dep[$parent][1] === '*'){}else{
-								$outArr[ $mainfield ]['objDis'] = 'disabled';
-								}
-							}
-							$outArr[ $mainfield ]['rowCss'] = $dep[$parent][0].'_'.$dep[$parent][1] ;
-						}
-						if( $this->settings[ $dep[$mainfield][0] ] != $dep[$mainfield][1] ){
-							if($dep[$mainfield][1] === '*'){}else{
-								$outArr[ $mainfield ]['objDis'] = 'disabled';
-							}
-						}
-						$outArr[ $mainfield ]['rowCss'] = trim( $outArr[ $mainfield ]['rowCss'] . ' ' . $dep[$mainfield][0].'_'.$dep[$mainfield][1] );
-						$outArr[ $mainfield ]['rowCss'] = trim( $outArr[ $mainfield ]['rowCss'] . ' ' . $outArr[ $mainfield ]['objDis'] );
-						$outArr[ $mainfield ]['css'] .= ' indented';
-					}
-					$outArr[ $mainfield ]['depends'] = '(' . $dep[$mainfield][0].'='.$this->settings['depends'][$mainfield][1] . ')';
+			$this->view->append( 'text' , '<h3>Installation<span style="font-weight:normal"> (##LL:global##) </span></h3>' );
+			// the 'page' variable has been assigned by boot->initiate() on line 142. It contains the message from installerService->status
+			
+			$servicesSection = '';
+			$servicesSection.= '<div style="padding:5px 10px;margin:2px 0;border:1px solid #AAA;">';
+			$servicesSection.= '<h4>' . ucFirst( $this->view->widgets->getLabel( 'contributed_services' ) ) . '</h4>';
+			$servicesSection.= $this->installAction_services();
+			$servicesSection.= ' <input style="margin:5px 0;" type="submit" name="ok[save]" value="##LL:save##" />';
+			$servicesSection.= '</div>';
+			 
+ 			if( !file_exists($this->settings['dataDir']) ){
+				// installation running?
+				if( $this->settings['edit_directories_manually'] && isset($this->settings['req']['uninstall']) && !empty($this->settings['req']['uninstall']) ) {
+						$LL = $this->settings['labels'][$this->settings['language']];
+						$statusText = '<p> <b>' . $LL['directory'] . ' ' . $LL['removed'] . '</b>. </p>';
+						$statusText.= '<p><a href="?uninstall=0&amp;controller[Configuration]=1">'.$LL['continue'].' ... </a> </p>';
+						$statusText.= '<p><i>'.ucFirst($LL['hint']).':</i> '.ucFirst($LL['installerService.optionEditManuallySlowsDown']).': </p>';
+						$statusText.= '<pre>array( ... \'edit_directories_manually\' => \'0\', ... )</pre> ';
+						$this->view->append( 'text' , $statusText );
+				}else{
+						// add dummy variable in case of there is any checkbox selected
+						$servicesSection .= '<input type="hidden" name="settings[viewcloudtimeout]" value="'.$this->settings['viewcloudtimeout'].'" />';
+						$this->view->append( 'text' , $servicesSection );
 				}
-				$outArr[ $mainfield ]['label'] = isset($lab[ $mainfield ]) ? $lab[ $mainfield ] : $mainfield;
-				$outArr[ $mainfield ]['type'] = $typ[ $mainfield ];
-				$outArr[ $mainfield ]['value'] = $mainContent;
-				
-				$possibleClasses = array(
-					'viewhelper'=>$this->view->widgets,
-					'csvService'=>$this->csvService
-				);
-				
-				if( $typ[ $mainfield ] == 'select' ){
-					if( !isset( $opt[ $mainfield ] ) ) continue;
-					$optionSource = $opt[ $mainfield ]['source'];
-					
-					if( $optionSource == 'array' ){
-						$options = $opt[ $mainfield ]['value'];
-						
-					}elseif( $optionSource == 'text' ){
-						if( !isset($opt[ $mainfield ]['value']) ) continue;
-						$options = explode( ',' , $opt[ $mainfield ]['value'] );
-						
-					}elseif( isset($possibleClasses[$optionSource]) ){
-						if( !isset($opt[ $mainfield ]['proc_name']) ) continue;
-						$method = $opt[ $mainfield ]['proc_name'];
-						//if( !method_exists( $possibleClasses[$optionSource] , $method ) ) continue;
-						if( isset($opt[ $mainfield ]['proc_options']) ){  // call method with (static) options
-							if( $opt[ $mainfield ]['proc_options'] == 'authUserGroup' ){
-								$opt[ $mainfield ]['proc_options'] = $this->authUser['group']; 
-							}
-						}
-						$options = $this->view->widgets->helper_getSelectOptionsFromMethod( $method , $opt[ $mainfield ]['proc_options'] , $possibleClasses[$optionSource] );
-						// if a higher group than the own membership is selected then disable the options-field
-						if( !in_array($mainContent,$options) ){
-								if( $opt[ $mainfield ]['proc_options'] == 'authUserGroup' ){ 
-									$options = NULL;
-								}else{
-									$options = array( $mainContent => $mainContent );
-								}
-						}
-					
-					}else{ // missconfiguration?
-						$options = $mainContent;
-						
-					}
-// 					if( count($options) <= 1)  $options = NULL; // disables the file-type selector if only csv is avaiable. Problem if other value is selected
-					$outArr[ $mainfield ]['options'] = $options ;
-					if( $options && isset( $opt[ $mainfield ]['onchange'] ) ) $outArr[ $mainfield ]['onchange'] = $opt[ $mainfield ]['onchange'];
-				}else{ // every object else than select: text, label
-				}
+				return;
 			}
-			return $outArr;
+			
+			if( isset($this->settings['static']['default_dir']) ) unset($this->settings['static']['default_dir']);
+
+			$directoriesSection = '';
+			$reinstallSection = '';
+			
+			
+			// hint: default_dir options are generated from method viewhelper->getDirsInDataDir()
+			$newDirectory = isset($this->settings['req']['settings']) && isset($this->settings['req']['settings']['newDirectory']) ? $this->settings['req']['settings']['newDirectory'] : ''; 
+			$outArr = $this->getSettingsAsObjList();
+
+			$directoriesSection = '<div style="min-height:3em;padding:5px 10px;margin:2px 0;border:1px solid #AAA;">';
+			$directoriesSection.= '<h4>'. ucFirst( $this->view->widgets->getLabel( 'dataDirs_title' ) ) . '</h4>';
+			
+			if( count( $outArr['default_dir']['options'] ) < 1 ){
+			$directoriesSection.= '<p style="margin:0.5em 0;">';
+			$directoriesSection.= ' '.ucFirst($this->view->widgets->getLabel('active_data_dir')).' <b>&laquo;<u>'.$this->settings['default_dir'].'</u>&raquo;</b>';
+			$directoriesSection.= ' '.ucFirst( $this->view->widgets->getLabel( 'directory_autorisation' ) ).' &laquo;'.$this->settings['directory_autorisation'].'&raquo;';
+			$directoriesSection.= '</p>';
+			
+			}else{
+					$directoriesSection.= '<p style="margin:0.5em 0;border-top:0px solid #ddd;padding-top:5px;">';
+					$directoriesSection.= '<b>##LL:change_data_dir##</b> ##LL:for_document## <u>'.basename($_SERVER['PHP_SELF']).'</u> (##LL:for_user## \'' . $this->authUser['user'].'\'):';
+					$directoriesSection.= '</p>';
+			
+					asort($outArr['default_dir']['options']);
+					foreach($outArr['default_dir']['options'] as $opt) {
+							if($this->settings['default_dir'] == $opt) {
+									$dirSectRow[$opt]= '<tr>';
+									$dirSectRow[$opt].= '<td style="padding:4px 1px 1px 0;">';
+									$dirSectRow[$opt].= '##LL:directory##  <b>&laquo;<u>'.$opt.'</u>&raquo;</b>';
+									$dirSectRow[$opt].= '</td>';
+									$dirSectRow[$opt].= '<td style="padding:4px 0px 1px 2px;" colspan="2"> ';
+									$dirSectRow[$opt].= ''.ucFirst($this->view->widgets->getLabel('active_data_dir')).' '.ucFirst( $this->view->widgets->getLabel( 'directory_autorisation' ) ).' &laquo;'.$this->settings['directory_autorisation'].'&raquo;</td>';
+									$dirSectRow[$opt].= '</tr>';
+									continue;
+							}
+							$dirSectRow[$opt]= '<tr>';
+							$dirSectRow[$opt].= '<tr>';
+							$dirSectRow[$opt].= '<td style="padding:2px 5px 2px 0;">';
+							$dirSectRow[$opt].= ' ##LL:directory## &laquo;<a title="'.ucFirst($this->view->getLabel('change_data_dir')).': '.$opt.'" class="black" href="?settings[default_dir]='.$opt.'&act='.$this->view->action.'&ok[save]=1">'.$opt.'</a>&raquo;';
+							$dirSectRow[$opt].= '</td>';
+							$dirSectRow[$opt].= '<td style="padding:2px 0;" title="'.ucFirst($this->view->getLabel('change_data_dir')).': '.$opt.'"> ';
+							$dirSectRow[$opt].= ' <a class="small" href="?settings[default_dir]='.$opt.'&act='.$this->view->action.'&ok[save]=1">&larr;</a>';
+							$dirSectRow[$opt].= ' <a title="'.ucFirst($this->view->getLabel('files.delete')).': '.$opt.'" class="small" href="?ok[remove]='.$opt.'&act=install" onclick="return window.confirm(\''.ucFirst($this->view->getLabel('files.delete')).'?\n##LL:directory##: '.$opt.'\');">'.ucFirst($this->view->getLabel('files.delete')).'</a> ';
+							$dirSectRow[$opt].= '</td>';
+							$dirSectRow[$opt].= '<td>';
+							$dirSectRow[$opt].= '</td>';
+							$dirSectRow[$opt].= '</tr>';
+					}
+					if( count($dirSectRow) ) $directoriesSection.= "\n\t<table border=\"0\" >\n\t\t" . implode( "\n\t\t" ,$dirSectRow ) . "\n\t</table>\n";
+			}
+			$directoriesSection.= '<p style="margin:2px 0;border-top:1px solid #ddd;padding-top:5px;">';
+			$directoriesSection.= ' <label>##LL:new_directory_label## <input type="text" id="newdirectory" name="settings[newDirectory]" value="'.$newDirectory.'" /> </label>';
+			$directoriesSection.= ' <input style="margin:5px 0;" type="submit" name="ok[create]" value="##LL:new_directory##"  onclick="var dirname=document.getElementById(\'newdirectory\').value; if( dirname == \'\'){return false}else{return window.confirm(\'##LL:new_directory_hint## \n'.ucFirst($this->view->getLabel('new_directory')).': \' + dirname);}" />';
+			$directoriesSection.= '</p>';
+			$directoriesSection.= '</div>';
+			
+			$reinstallSection.= '<div style="padding:5px 10px;margin:2px 0;border:1px solid #AAA;">';
+			$reinstallSection.= '<h4>'. ucFirst( $this->view->widgets->getLabel( 'reinstall_value' ) ) . '</h4>';
+			$reinstallSection.= '<table class="nopad"><tr><td>';
+			$reinstallSection.= '<input type="submit" name="uninstall[1]" value="'.$this->view->widgets->getLabel( 'reinstall_value' ) . '" onclick="return window.confirm(\'##LL:caution## \n##LL:reinstall_description##! \n##LL:reinstall_hint##\');" /> ';
+			$reinstallSection.= '</td><td>';
+			$reinstallSection.= '<i>'.$this->view->widgets->getLabel( 'reinstall_description' ) . ', ##LL:as_defined_in##  &laquo;' . basename($_SERVER['PHP_SELF']) . '&raquo; </i>';
+			$reinstallSection.= '</td></tr></table>';
+			$reinstallSection.= '</div>';
+			
+			
+			$this->view->assign( 'button' ,  $directoriesSection . $reinstallSection . $servicesSection);
+    }
+
+    /**
+     * action databaseAction
+     * file handling
+     *
+     * @return void
+     */
+    public function databaseAction() {
+			// initiate model and assign
+// 			$this->view->models->viewoptions['index_editable'] = TRUE;
+ 			$this->view->assign( 'button' , $this->view->models->htmlModelEditor( 'Sqlconnect' ) );
+ 			
+			// no action, only display table
+			if( !isset($this->settings['req']) || !isset($this->settings['req']['execute']) ) {
+				if( is_array($this->view->models->model->debug) && count($this->view->models->model->debug) ) $this->debug['databaseAction sql-query-result'] = implode( ', ' , $this->view->models->model->debug );
+				return false;
+			}
+ 			
+ 			// get the selected recordset and execute action as defined in models method model->executeAction()
+			$modeltable = $this->getFirstArrayKey($this->settings['req']['execute']);
+			$key = $this->getFirstArrayKey($this->settings['req']['execute'][$modeltable]);
+			$this->view->models->model->executeAction( $key );
+			if( is_array($this->view->models->model->debug) && count($this->view->models->model->debug) ) $this->debug['databaseAction sql-execute-result'] = implode( ', ' , $this->view->models->model->debug );
+			
+			return true;
 	}
+
+    /**
+     * action profileAction
+     * can be an action but also a alias-action for users
+     *
+     * @return void
+     */
+    public function profileAction() {
+			// redirect if user action is readable for this user
+ 			if( $this->authUser['group'] >= $this->accessRules['users'] ) return 'users';
+			
+			// display page
+			$pgtitle = '<h3 style="margin-top:0;">'.ucfirst($this->view->getLabel('profile')).'';
+			$pgtitle.= '<span style="font-weight:normal"> ('. trim( $this->view->getLabel('local') . ' ' . basename($this->settings['dataDir']) ) .')</span>';
+			$pgtitle.= '</h3>';
+			
+			$aFilter = array( 'user'=>'=='.$this->authUser['user'] );
+			$lockedRecords = array( $this->authUser['user'] => true );
+			$aOptions = array( 'title'=>FALSE , 'addrecords' => FALSE )  ;
+			$this->view->models->viewoptions['option_defaults']['table'] = FALSE;
+			$page =  $this->view->models->htmlModelEditor( 'users' , $aFilter , $lockedRecords , $aOptions );
+			$this->view->assign( 'page' , $pgtitle . $page);
+			
+			// debugger
+			if( is_array($this->view->models->model->debug) && count($this->view->models->model->debug) ) {foreach($this->view->models->model->debug as $title=>$msg) $this->debug[ 'profileAction->authUserModel->' . $title ] = $msg;}
+	}
+
+    /**
+     * action usersAction
+     *
+     * @return void
+     */
+    public function usersAction() {
+			$aFilter = array( 'group' => '<='.$this->authUser['group'] );
+			$lockedRecords = array( $this->authUser['user'] => true );
+			$aOptions = array( 'title'=>FALSE , 'hints'=>FALSE ) ;
+			$page =  $this->view->models->htmlModelEditor( 'users' , $aFilter , $lockedRecords , $aOptions );
+			$page.= $this->users_aclOptions($this->authUser['group']);
+
+			$title = $this->view->models->obj_HtmlActualModelTitle();
+			$title .= '<p style="margin:0;padding:0;"> ##LL:edit_user_grade_hint##. <br /> <i> ##LL:edit_cell_hint## </i> </p>';
+			
+			// assign page and debugger
+			$this->view->assign( 'page' , $title .$page );
+			if( isset($this->view->models->model->debug) && count($this->view->models->model->debug) ) {foreach($this->view->models->model->debug as $title=>$msg) $this->debug[ 'usersAction->authUserModel->' . $title ] = $msg;}
+    }
 
     /**
      * action tableeditorAction
@@ -542,6 +622,162 @@ class ConfigurationController extends \Drg\CloudApi\controllerBase {
 			$this->view->assign( 'page' , '<div>' . $page . '</div>' );
 	}
 
+    /**
+     * action settings_cat_output
+     *
+     * @return void
+     */
+    public function settings_cat_outputAction() {
+		if( $this->authUser['group'] >= $this->categoriesAccessRules['output'] ) $this->settings['req']['cat']['output'] = 'output';
+		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
+		return 'settings';
+    }
+
+    /**
+     * action settings_cat_cronn
+     *
+     * @return void
+     */
+    public function settings_cat_cronnAction() {
+		if( $this->authUser['group'] >= $this->categoriesAccessRules['connection'] ) $this->settings['req']['cat']['connection'] = 'connection';
+		if( $this->authUser['group'] >= $this->categoriesAccessRules['cron'] ) $this->settings['req']['cat']['cron'] = 'cron';
+		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
+		return 'settings';
+    }
+
+    /**
+     * action settings_cat_sync
+     *
+     * @return void
+     */
+    public function settings_cat_syncAction() {
+		if( $this->authUser['group'] < $this->categoriesAccessRules['syncronisation'] ){
+			if( $this->authUser['group'] >= $this->categoriesAccessRules['connection'] ) $this->settings['req']['cat']['connection'] = 'connection';
+		}else{
+			$this->settings['req']['cat']['syncronisation'] = 'syncronisation';
+		}
+		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
+		return 'settings';
+    }
+
+    /**
+     * action settings_cat_connection
+     *
+     * @return void
+     */
+    public function settings_cat_connectionAction() {
+		if( $this->authUser['group'] >= $this->categoriesAccessRules['connection'] ) $this->settings['req']['cat']['connection'] = 'connection';
+		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
+		return 'settings';
+	}
+
+    /**
+     * action settings_cat_pdf
+     *
+     * @return void
+     */
+    public function settings_cat_pdfAction() {
+		if( $this->authUser['group'] >= $this->categoriesAccessRules['pdf'] ) $this->settings['req']['cat']['pdf'] = 'pdf';
+		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
+		return 'settings';
+	}
+
+    /**
+     * getSettingsAsObjList
+     *
+     * @return array
+     */
+    Private function getSettingsAsObjList() {
+			$typ = $this->settings['format'];
+			$lab = $this->settings['labels'][$this->settings['language']];
+			$opt = $this->settings['options'];
+			$dep = $this->settings['depends'];
+
+			$outArr = array();
+			foreach( $this->settings['original'] as $mainfield => $originalContent ){
+				$mainContent = $this->settings[$mainfield];
+				if( !isset($typ[ $mainfield ]) ) continue;
+				if( is_array($mainContent) )  continue;
+				if( isset($this->settings['static'][$mainfield]) )  continue; // $typ[ $mainfield ] = 'label';
+				$outArr[ $mainfield ]['css'] = '';
+				$outArr[ $mainfield ]['rowCss'] = '';
+				$outArr[ $mainfield ]['objDis'] = '';
+				$outArr[ $mainfield ]['depends'] = '';
+				if( isset( $dep[$mainfield] ) ){
+					if( isset($this->settings[ $dep[$mainfield][0] ]) ){
+						// is parent dependent on other parent?
+						$parent = $dep[$mainfield][0];
+						if( isset( $dep[$parent] ) && isset($this->settings[ $dep[$parent][0] ]) ){
+							if( $this->settings[ $dep[$parent][0] ] != $dep[$parent][1] ){
+								if($dep[$parent][1] === '*'){}else{
+								$outArr[ $mainfield ]['objDis'] = 'disabled';
+								}
+							}
+							$outArr[ $mainfield ]['rowCss'] = $dep[$parent][0].'_'.$dep[$parent][1] ;
+						}
+						if( $this->settings[ $dep[$mainfield][0] ] != $dep[$mainfield][1] ){
+							if($dep[$mainfield][1] === '*'){}else{
+								$outArr[ $mainfield ]['objDis'] = 'disabled';
+							}
+						}
+						$outArr[ $mainfield ]['rowCss'] = trim( $outArr[ $mainfield ]['rowCss'] . ' ' . $dep[$mainfield][0].'_'.$dep[$mainfield][1] );
+						$outArr[ $mainfield ]['rowCss'] = trim( $outArr[ $mainfield ]['rowCss'] . ' ' . $outArr[ $mainfield ]['objDis'] );
+						$outArr[ $mainfield ]['css'] .= ' indented';
+					}
+					$outArr[ $mainfield ]['depends'] = '(' . $dep[$mainfield][0].'='.$this->settings['depends'][$mainfield][1] . ')';
+				}
+				$outArr[ $mainfield ]['label'] = isset($lab[ $mainfield ]) ? $lab[ $mainfield ] : $mainfield;
+				$outArr[ $mainfield ]['type'] = $typ[ $mainfield ];
+				$outArr[ $mainfield ]['value'] = $mainContent;
+				
+				$possibleClasses = array(
+					'viewhelper'=>$this->view->widgets,
+					'csvService'=>$this->csvService
+				);
+				
+				if( $typ[ $mainfield ] == 'select' ){
+					if( !isset( $opt[ $mainfield ] ) ) continue;
+					$optionSource = $opt[ $mainfield ]['source'];
+					
+					if( $optionSource == 'array' ){
+						$options = $opt[ $mainfield ]['value'];
+						
+					}elseif( $optionSource == 'text' ){
+						if( !isset($opt[ $mainfield ]['value']) ) continue;
+						$options = explode( ',' , $opt[ $mainfield ]['value'] );
+						
+					}elseif( isset($possibleClasses[$optionSource]) ){
+						if( !isset($opt[ $mainfield ]['proc_name']) ) continue;
+						$method = $opt[ $mainfield ]['proc_name'];
+						//if( !method_exists( $possibleClasses[$optionSource] , $method ) ) continue;
+						if( isset($opt[ $mainfield ]['proc_options']) ){  // call method with (static) options
+							if( $opt[ $mainfield ]['proc_options'] == 'authUserGroup' ){
+								$opt[ $mainfield ]['proc_options'] = $this->authUser['group']; 
+							}
+						}
+						$options = $this->view->widgets->helper_getSelectOptionsFromMethod( $method , $opt[ $mainfield ]['proc_options'] , $possibleClasses[$optionSource] );
+						// if a higher group than the own membership is selected then disable the options-field
+						if( !in_array($mainContent,$options) ){
+								if( $opt[ $mainfield ]['proc_options'] == 'authUserGroup' ){ 
+									$options = NULL;
+								}else{
+									$options = array( $mainContent => $mainContent );
+								}
+						}
+					
+					}else{ // missconfiguration?
+						$options = $mainContent;
+						
+					}
+// 					if( count($options) <= 1)  $options = NULL; // disables the file-type selector if only csv is avaiable. Problem if other value is selected
+					$outArr[ $mainfield ]['options'] = $options ;
+					if( $options && isset( $opt[ $mainfield ]['onchange'] ) ) $outArr[ $mainfield ]['onchange'] = $opt[ $mainfield ]['onchange'];
+				}else{ // every object else than select: text, label
+				}
+			}
+			return $outArr;
+	}
+
 	/**
      * tableeditor_getFieldnames
      * helper for tableeditorAction
@@ -571,115 +807,11 @@ class ConfigurationController extends \Drg\CloudApi\controllerBase {
 	}
 
     /**
-     * action installAction
-     *
-     * @return void
-     */
-    public function installAction() {
-
-			$this->view->append( 'text' , '<h3>Installation<span style="font-weight:normal"> (##LL:global##) </span></h3>' );
-			// the 'page' variable has been assigned by boot->initiate() on line 142. It contains the message from installerService->status
-			
-			$servicesSection = '';
-			$servicesSection.= '<div style="padding:5px 10px;margin:2px 0;border:1px solid #AAA;">';
-			$servicesSection.= '<h4>' . ucFirst( $this->view->widgets->getLabel( 'contributed_services' ) ) . '</h4>';
-			$servicesSection.= $this->installAction_services();
-			$servicesSection.= ' <input style="margin:5px 0;" type="submit" name="ok[save]" value="##LL:save##" />';
-			$servicesSection.= '</div>';
-			 
- 			if( !file_exists($this->settings['dataDir']) ){
-				// installation running?
-				if( $this->settings['edit_directories_manually'] && isset($this->settings['req']['uninstall']) && !empty($this->settings['req']['uninstall']) ) {
-						$LL = $this->settings['labels'][$this->settings['language']];
-						$statusText = '<p> <b>' . $LL['directory'] . ' ' . $LL['removed'] . '</b>. </p>';
-						$statusText.= '<p><a href="?uninstall=0&amp;controller[Configuration]=1">'.$LL['continue'].' ... </a> </p>';
-						$statusText.= '<p><i>'.ucFirst($LL['hint']).':</i> '.ucFirst($LL['installerService.optionEditManuallySlowsDown']).': </p>';
-						$statusText.= '<pre>array( ... \'edit_directories_manually\' => \'0\', ... )</pre> ';
-						$this->view->append( 'text' , $statusText );
-				}else{
-						// add dummy variable in case of there is any checkbox selected
-						$servicesSection .= '<input type="hidden" name="settings[viewcloudtimeout]" value="'.$this->settings['viewcloudtimeout'].'" />';
-						$this->view->append( 'text' , $servicesSection );
-				}
-				return;
-			}
-			
-			if( isset($this->settings['static']['default_dir']) ) unset($this->settings['static']['default_dir']);
-
-			$directoriesSection = '';
-			$reinstallSection = '';
-			
-			
-			// hint: default_dir options are generated from method viewhelper->getDirsInDataDir()
-			$newDirectory = isset($this->settings['req']['settings']) && isset($this->settings['req']['settings']['newDirectory']) ? $this->settings['req']['settings']['newDirectory'] : ''; 
-			$outArr = $this->getSettingsAsObjList();
-
-			$directoriesSection = '<div style="min-height:3em;padding:5px 10px;margin:2px 0;border:1px solid #AAA;">';
-			$directoriesSection.= '<h4>'. ucFirst( $this->view->widgets->getLabel( 'dataDirs_title' ) ) . '</h4>';
-			
-			if( count( $outArr['default_dir']['options'] ) < 1 ){
-			$directoriesSection.= '<p style="margin:0.5em 0;">';
-			$directoriesSection.= ' '.ucFirst($this->view->widgets->getLabel('active_data_dir')).' <b>&laquo;<u>'.$this->settings['default_dir'].'</u>&raquo;</b>';
-			$directoriesSection.= ' '.ucFirst( $this->view->widgets->getLabel( 'directory_autorisation' ) ).' &laquo;'.$this->settings['directory_autorisation'].'&raquo;';
-			$directoriesSection.= '</p>';
-			
-			}else{
-					$directoriesSection.= '<p style="margin:0.5em 0;border-top:0px solid #ddd;padding-top:5px;">';
-					$directoriesSection.= '<b>##LL:change_data_dir##</b> ##LL:for_document## <u>'.basename($_SERVER['PHP_SELF']).'</u> (##LL:for_user## \'' . $this->authUser['user'].'\'):';
-					$directoriesSection.= '</p>';
-			
-					asort($outArr['default_dir']['options']);
-					foreach($outArr['default_dir']['options'] as $opt) {
-							if($this->settings['default_dir'] == $opt) {
-									$dirSectRow[$opt]= '<tr>';
-									$dirSectRow[$opt].= '<td style="padding:4px 1px 1px 0;">';
-									$dirSectRow[$opt].= '##LL:directory##  <b>&laquo;<u>'.$opt.'</u>&raquo;</b>';
-									$dirSectRow[$opt].= '</td>';
-									$dirSectRow[$opt].= '<td style="padding:4px 0px 1px 2px;" colspan="2"> ';
-									$dirSectRow[$opt].= ''.ucFirst($this->view->widgets->getLabel('active_data_dir')).' '.ucFirst( $this->view->widgets->getLabel( 'directory_autorisation' ) ).' &laquo;'.$this->settings['directory_autorisation'].'&raquo;</td>';
-									$dirSectRow[$opt].= '</tr>';
-									continue;
-							}
-							$dirSectRow[$opt]= '<tr>';
-							$dirSectRow[$opt].= '<tr>';
-							$dirSectRow[$opt].= '<td style="padding:2px 5px 2px 0;">';
-							$dirSectRow[$opt].= ' ##LL:directory## &laquo;<a title="'.ucFirst($this->view->getLabel('change_data_dir')).': '.$opt.'" class="black" href="?settings[default_dir]='.$opt.'&act='.$this->view->action.'&ok[save]=1">'.$opt.'</a>&raquo;';
-							$dirSectRow[$opt].= '</td>';
-							$dirSectRow[$opt].= '<td style="padding:2px 0;" title="'.ucFirst($this->view->getLabel('change_data_dir')).': '.$opt.'"> ';
-							$dirSectRow[$opt].= ' <a class="small" href="?settings[default_dir]='.$opt.'&act='.$this->view->action.'&ok[save]=1">&larr;</a>';
-							$dirSectRow[$opt].= ' <a title="'.ucFirst($this->view->getLabel('files.delete')).': '.$opt.'" class="small" href="?ok[remove]='.$opt.'&act=install" onclick="return window.confirm(\''.ucFirst($this->view->getLabel('files.delete')).'?\n##LL:directory##: '.$opt.'\');">'.ucFirst($this->view->getLabel('files.delete')).'</a> ';
-							$dirSectRow[$opt].= '</td>';
-							$dirSectRow[$opt].= '<td>';
-							$dirSectRow[$opt].= '</td>';
-							$dirSectRow[$opt].= '</tr>';
-					}
-					if( count($dirSectRow) ) $directoriesSection.= "\n\t<table border=\"0\" >\n\t\t" . implode( "\n\t\t" ,$dirSectRow ) . "\n\t</table>\n";
-			}
-			$directoriesSection.= '<p style="margin:2px 0;border-top:1px solid #ddd;padding-top:5px;">';
-			$directoriesSection.= ' <label>##LL:new_directory_label## <input type="text" id="newdirectory" name="settings[newDirectory]" value="'.$newDirectory.'" /> </label>';
-			$directoriesSection.= ' <input style="margin:5px 0;" type="submit" name="ok[create]" value="##LL:new_directory##"  onclick="var dirname=document.getElementById(\'newdirectory\').value; if( dirname == \'\'){return false}else{return window.confirm(\'##LL:new_directory_hint## \n'.ucFirst($this->view->getLabel('new_directory')).': \' + dirname);}" />';
-			$directoriesSection.= '</p>';
-			$directoriesSection.= '</div>';
-			
-			$reinstallSection.= '<div style="padding:5px 10px;margin:2px 0;border:1px solid #AAA;">';
-			$reinstallSection.= '<h4>'. ucFirst( $this->view->widgets->getLabel( 'reinstall_value' ) ) . '</h4>';
-			$reinstallSection.= '<table class="nopad"><tr><td>';
-			$reinstallSection.= '<input type="submit" name="uninstall[1]" value="'.$this->view->widgets->getLabel( 'reinstall_value' ) . '" onclick="return window.confirm(\'##LL:caution## \n##LL:reinstall_description##! \n##LL:reinstall_hint##\');" /> ';
-			$reinstallSection.= '</td><td>';
-			$reinstallSection.= '<i>'.$this->view->widgets->getLabel( 'reinstall_description' ) . ', ##LL:as_defined_in##  &laquo;' . basename($_SERVER['PHP_SELF']) . '&raquo; </i>';
-			$reinstallSection.= '</td></tr></table>';
-			$reinstallSection.= '</div>';
-			
-			
-			$this->view->assign( 'button' ,  $directoriesSection . $reinstallSection . $servicesSection);
-    }
-
-    /**
      * action installAction_services
      *
      * @return void
      */
-    public function installAction_services() {
+    Private function installAction_services() {
 			$servicesSection = '';
 			$aServicenames = array( 'documentscontroller','spreadsheetservice','spreadsheet_excel_reader' );
 			
@@ -735,84 +867,12 @@ class ConfigurationController extends \Drg\CloudApi\controllerBase {
 	}
 
     /**
-     * action databaseAction
-     * file handling
-     *
-     * @return void
-     */
-    public function databaseAction() {
-			// initiate model and assign
-// 			$this->view->models->viewoptions['index_editable'] = TRUE;
- 			$this->view->assign( 'button' , $this->view->models->htmlModelEditor( 'Sqlconnect' ) );
- 			
-			// no action, only display table
-			if( !isset($this->settings['req']) || !isset($this->settings['req']['execute']) ) {
-				if( is_array($this->view->models->model->debug) && count($this->view->models->model->debug) ) $this->debug['databaseAction sql-query-result'] = implode( ', ' , $this->view->models->model->debug );
-				return false;
-			}
- 			
- 			// get the selected recordset and execute action as defined in models method model->executeAction()
-			$modeltable = $this->getFirstArrayKey($this->settings['req']['execute']);
-			$key = $this->getFirstArrayKey($this->settings['req']['execute'][$modeltable]);
-			$this->view->models->model->executeAction( $key );
-			if( is_array($this->view->models->model->debug) && count($this->view->models->model->debug) ) $this->debug['databaseAction sql-execute-result'] = implode( ', ' , $this->view->models->model->debug );
-			
-			return true;
-	}
-
-    /**
-     * action profileAction
-     * can be an action but also a alias-action for users
-     *
-     * @return void
-     */
-    public function profileAction() {
-			// redirect if user action is readable for this user
- 			if( $this->authUser['group'] >= $this->accessRules['users'] ) return 'users';
-			
-			// display page
-			$pgtitle = '<h3 style="margin-top:0;">'.ucfirst($this->view->getLabel('profile')).'';
-			$pgtitle.= '<span style="font-weight:normal"> ('. trim( $this->view->getLabel('local') . ' ' . basename($this->settings['dataDir']) ) .')</span>';
-			$pgtitle.= '</h3>';
-			
-			$aFilter = array( 'user'=>'=='.$this->authUser['user'] );
-			$lockedRecords = array( $this->authUser['user'] => true );
-			$aOptions = array( 'title'=>FALSE , 'addrecords' => FALSE )  ;
-			$this->view->models->viewoptions['option_defaults']['table'] = FALSE;
-			$page =  $this->view->models->htmlModelEditor( 'users' , $aFilter , $lockedRecords , $aOptions );
-			$this->view->assign( 'page' , $pgtitle . $page);
-			
-			// debugger
-			if( is_array($this->view->models->model->debug) && count($this->view->models->model->debug) ) {foreach($this->view->models->model->debug as $title=>$msg) $this->debug[ 'profileAction->authUserModel->' . $title ] = $msg;}
-	}
-
-    /**
-     * action usersAction
-     *
-     * @return void
-     */
-    public function usersAction() {
-			$aFilter = array( 'group' => '<='.$this->authUser['group'] );
-			$lockedRecords = array( $this->authUser['user'] => true );
-			$aOptions = array( 'title'=>FALSE , 'hints'=>FALSE ) ;
-			$page =  $this->view->models->htmlModelEditor( 'users' , $aFilter , $lockedRecords , $aOptions );
-			$page.= $this->users_aclOptions($this->authUser['group']);
-
-			$title = $this->view->models->obj_HtmlActualModelTitle();
-			$title .= '<p style="margin:0;padding:0;"> ##LL:edit_user_grade_hint##. <br /> <i> ##LL:edit_cell_hint## </i> </p>';
-			
-			// assign page and debugger
-			$this->view->assign( 'page' , $title .$page );
-			if( isset($this->view->models->model->debug) && count($this->view->models->model->debug) ) {foreach($this->view->models->model->debug as $title=>$msg) $this->debug[ 'usersAction->authUserModel->' . $title ] = $msg;}
-    }
-
-    /**
      * users_aclOptions
      *
      * @param int $editorsUserGroup optional, default = 99 (full-admin-rights)
      * @return string
      */
-    public function users_aclOptions( $editorsUserGroup = 99) {
+    Private function users_aclOptions( $editorsUserGroup = 99) {
 			$allControllers = $this->allControllersObjects;
 			for( $list = array( 'actions' , 'documents' , 'notes' , 'configuration' ) , $z = 0 ; $z < count($list) ; ++$z ){
 				$controller = $list[$z];
@@ -877,71 +937,11 @@ class ConfigurationController extends \Drg\CloudApi\controllerBase {
 	}
 
     /**
-     * action settings_cat_output
-     *
-     * @return void
-     */
-    public function settings_cat_outputAction() {
-		if( $this->authUser['group'] >= $this->categoriesAccessRules['output'] ) $this->settings['req']['cat']['output'] = 'output';
-		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
-		return 'settings';
-    }
-
-    /**
-     * action settings_cat_cronn
-     *
-     * @return void
-     */
-    public function settings_cat_cronnAction() {
-		if( $this->authUser['group'] >= $this->categoriesAccessRules['connection'] ) $this->settings['req']['cat']['connection'] = 'connection';
-		if( $this->authUser['group'] >= $this->categoriesAccessRules['cron'] ) $this->settings['req']['cat']['cron'] = 'cron';
-		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
-		return 'settings';
-    }
-
-    /**
-     * action settings_cat_sync
-     *
-     * @return void
-     */
-    public function settings_cat_syncAction() {
-		if( $this->authUser['group'] < $this->categoriesAccessRules['syncronisation'] ){
-			if( $this->authUser['group'] >= $this->categoriesAccessRules['connection'] ) $this->settings['req']['cat']['connection'] = 'connection';
-		}else{
-			$this->settings['req']['cat']['syncronisation'] = 'syncronisation';
-		}
-		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
-		return 'settings';
-    }
-
-    /**
-     * action settings_cat_connection
-     *
-     * @return void
-     */
-    public function settings_cat_connectionAction() {
-		if( $this->authUser['group'] >= $this->categoriesAccessRules['connection'] ) $this->settings['req']['cat']['connection'] = 'connection';
-		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
-		return 'settings';
-	}
-
-    /**
-     * action settings_cat_pdf
-     *
-     * @return void
-     */
-    public function settings_cat_pdfAction() {
-		if( $this->authUser['group'] >= $this->categoriesAccessRules['pdf'] ) $this->settings['req']['cat']['pdf'] = 'pdf';
-		if( !isset($this->settings['req']['cat']) || !count($this->settings['req']['cat']) ) $this->setLowestCategory() ;
-		return 'settings';
-	}
-
-    /**
      * helper getLowestCategory get category with lowest accesGrade
      *
      * @return void
      */
-    public function setLowestCategory() {
+    Private function setLowestCategory() {
 		$rules = $this->categoriesAccessRules;
 		asort($rules);
 		$sortRulesKeys = array_keys($rules);
