@@ -539,6 +539,7 @@ class bootup_settings extends core {
 		
  		$phpSelfBasename = '_' . basename($_SERVER['PHP_SELF'],'.php');
 		$usersFilename = DATA_DIR . str_replace( '##USERNAME##' , $username . $phpSelfBasename , $this->settings['session_settings_filename'] );
+		if( file_exists($usersFilename) ) unlink($usersFilename); // prepend low right for overwrite (? needed on localhost)
 		file_put_contents( $usersFilename , serialize( $sessionSettings ) );
 		$this->fileHandlerService->writeCompressedFile( $usersFilename , $sessionSettings );
 
