@@ -10,3 +10,4 @@
 <b>Hint</b>: 
 In the zip-file all is included, but in the unzipped version there is no Spot included in script/Classes/Contributed/Spout/ cause of the size (101 files)
 
+Releases History: https://tools.sfgz.ch/cloudApiAdmin/?act=viewnotes&sec=releasenotes
